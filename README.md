@@ -2,6 +2,8 @@
 
 The `savedfile` utility is a CLI tool for managing files in a database.
 
+![Usage example](img/example.png)
+
 ## Installation
 
 This project requires Rust to be installed. After ensuring that Rust is installed, you can install the project by running the appropriate script for your system:
