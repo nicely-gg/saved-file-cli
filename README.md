@@ -25,10 +25,9 @@ The `savedfile` utility is primarily used through three subcommands: `from`, `us
 The `from` subcommand is used to save a file to the database.
 
 ```bash
-savedfile from --file <file> --named <name> [--version <version>]
+savedfile from <file> --named <name> [--version <version>]
 ```
 
-- `--file`: The file to use locally. This argument is required.
 - `--named`: What to name the provided file in the database. This argument is required.
 - `--version`: The version of a file to use.
 
@@ -37,12 +36,11 @@ savedfile from --file <file> --named <name> [--version <version>]
 The `use` subcommand retrieves a file from the database.
 
 ```bash
-savedfile use --name <name> [--save <local_name>] [--copy] [--version <version>]
+savedfile use <name> [--save <local_name>] [--output] [--version <version>]
 ```
 
-- `--name`: The name of the file in the database. This argument is required.
 - `--save`: What to save the file as locally.
-- `--copy`: Copy the file instead of creating a link to it.
+- `--output`: Copy the file instead of creating a link to it.
 - `--version`: The version of a file to use.
 
 ### Remove
@@ -50,10 +48,9 @@ savedfile use --name <name> [--save <local_name>] [--copy] [--version <version>]
 The `remove` subcommand removes a file from the database.
 
 ```bash
-savedfile remove --name <name> [--version <version>]
+savedfile remove <name> [--version <version>]
 ```
 
-- `--name`: The name of the file in the database. This argument is required.
 - `--version`: The version of a file to use.
 
 ### List
@@ -61,7 +58,5 @@ savedfile remove --name <name> [--version <version>]
 The `list` subcommand lists all files or specific file if a name is provided in the database.
 
 ```bash
-savedfile list [--name <name>]
+savedfile list <name>
 ```
-
-- `--name`: The name of the file in the database.
