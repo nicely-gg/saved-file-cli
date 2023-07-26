@@ -33,7 +33,7 @@ impl FileEntry {
       return String::from(&self.name);
     }
 
-    format!("{}-{}", self.name, self.version.as_ref().unwrap())
+    format!("{}@{}", self.name, self.version.as_ref().unwrap())
   }
 
   pub fn store(&mut self) -> Result<(), String> {

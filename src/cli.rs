@@ -1,5 +1,6 @@
 use std::{
   collections::{HashMap, HashSet},
+  fs::remove_file,
   path::{Path, PathBuf},
 };
 
@@ -13,6 +14,7 @@ lazy_static! {
   static ref COMMAND: Command = Command::new("savedfile")
     .subcommand(
       Command::new("from")
+        .about("Create a saved file from a provided local file")
         .arg(
           Arg::new("file")
             .help("The file to use locally")
@@ -37,6 +39,7 @@ lazy_static! {
     )
     .subcommand(
       Command::new("use")
+        .about("Use a saved file by whatever you --named it using the from command")
         .arg(
           Arg::new("name")
             .help("The name of the file in the database")
@@ -44,9 +47,9 @@ lazy_static! {
             .value_parser(value_parser!(String)),
         )
         .arg(
-          Arg::new("save_as")
-            .short('s')
-            .long("save")
+          Arg::new("output")
+            .short('o')
+            .long("output")
             .help("What to save the file as locally")
             .value_parser(value_parser!(String)),
         )
@@ -67,6 +70,7 @@ lazy_static! {
     )
     .subcommand(
       Command::new("remove")
+        .about("Remove a saved file")
         .arg(
           Arg::new("name")
             .help("The name of the file in the database")
@@ -82,12 +86,16 @@ lazy_static! {
         ),
     )
     .subcommand(
-      Command::new("list").arg(
-        Arg::new("name")
-          .help("The name of the file in the database")
-          .required(false)
-          .value_parser(value_parser!(String)),
-      )
+      Command::new("list")
+        .about(
+          "Gives a list of all (or a specific) saved file(s) and their versions (a plus means there's a default version)"
+        )
+        .arg(
+          Arg::new("name")
+            .help("The name of the file in the database")
+            .required(false)
+            .value_parser(value_parser!(String)),
+        )
     );
 }
 
@@ -104,7 +112,7 @@ pub fn handle() {
     Some(("use", matches)) => handle_use(
       matches.get_one("name"),
       matches.get_one("version"),
-      matches.get_one("save_as"),
+      matches.get_one("output"),
       matches.get_one("copy"),
     ),
 
@@ -137,13 +145,20 @@ fn handle_from(
     return Err(String::from("Missing required arguments"));
   }
 
-  // make sure the file exists
-  let full_path = Path::new(file_name.unwrap());
-  if !full_path.is_file() {
-    return Err(format!("File {} does not exist", file_name.unwrap()));
+  let file_name = file_name.unwrap();
+  let name = name.cloned().unwrap();
+
+  if name.contains('@') {
+    return Err(String::from("The name cannot contain an '@' symbol"));
   }
 
-  let mut entry = FileEntry::new(name.cloned().unwrap(), version.cloned());
+  // make sure the file exists
+  let full_path = Path::new(file_name);
+  if !full_path.is_file() {
+    return Err(format!("File {} does not exist", file_name));
+  }
+
+  let mut entry = FileEntry::new(name, version.cloned());
 
   // set the default save name to the name of the provided file
   entry.original_path = full_path
@@ -158,6 +173,19 @@ fn handle_from(
     .to_string();
 
   entry.store()?;
+
+  let do_link_original = dialoguer::Select::new()
+    .with_prompt("Replace original with a link to the stored one?")
+    .default(0)
+    .items(&["Yes", "No"])
+    .interact()
+    .unwrap_or(1);
+
+  if do_link_original == 0 {
+    remove_file(full_path).map_err(|_| "Failed to remove the original file")?;
+    entry.link(full_path)?;
+  }
+
   storage::add(entry)?;
 
   Ok(())
