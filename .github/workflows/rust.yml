@@ -12,10 +12,11 @@ env:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
-    
+    runs-on: ${{ matrix.os }}
+
     strategy:
       matrix:
+        os: [ubuntu-latest, windows-latest]
         rust:
         - stable
 
@@ -36,6 +37,6 @@ jobs:
     - name: Archive production artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: ${{ github.workflow }}-ubuntu-artifacts
+        name: ${{ github.workflow }}-${{ matrix.os }}-artifacts
         path: |
-          target/release/savedfile
+          target/release/savedfile${{ endsWith(matrix.os, 'windows-latest') && '.exe' || '' }}

@@ -5,8 +5,8 @@ use std::{
 };
 
 use clap::{value_parser, Arg, Command};
+use console::Style;
 use lazy_static::lazy_static;
-use termion::{color, style};
 
 use crate::{files::FileEntry, storage};
 
@@ -120,17 +120,14 @@ pub fn handle() {
     Some(("list", matches)) => handle_list(matches.get_one("name")),
 
     _ => Err(format!(
-      "Couldn't find a subcommand for that. {}Try using --help.",
-      style::Bold,
+      "Couldn't find a subcommand for that. Try using --help.",
     )),
   };
 
   if let Err(e) = result {
     eprintln!(
-      "{}{}Error:{} {e}",
-      style::Bold,
-      color::Fg(color::LightRed),
-      style::Reset
+      "{} {e}",
+      Style::new().red().bright().bold().apply_to("Error:"),
     );
   }
 }
@@ -277,23 +274,20 @@ fn handle_list(name: Option<&String>) -> Result<(), String> {
       .collect::<Vec<String>>()
       .join(", ");
 
-    print!("{}{entry_name}", style::Bold);
+    print!("{}", Style::new().bold().apply_to(entry_name));
 
     // check if there is an empty string
     if has_default {
-      print!("{}{}+", style::Reset, color::Fg(color::LightGreen));
+      print!("{}", Style::new().green().bright().apply_to("+"));
     }
 
     if versions.len() > 0 {
       println!(
-        "{}{} versions: {}{versions}",
-        style::Reset,
-        color::Fg(color::LightBlack),
-        color::Fg(color::LightCyan),
+        "{} {}",
+        Style::new().black().bright().apply_to(" versions:"),
+        Style::new().cyan().bright().apply_to(versions),
       );
     }
-
-    print!("{}{}", style::Reset, color::Fg(color::Reset));
   }
 
   Ok(())
